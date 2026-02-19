@@ -20,6 +20,13 @@ func (h *Handler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate the configuration (ID will be set from URL)
+	config.ID = id
+	if err := config.Validate(); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	if err := h.storage.Update(id, &config); err != nil {
 		if err == storage.ErrNotFound {
 			respondError(w, http.StatusNotFound, "config not found")

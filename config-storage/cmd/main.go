@@ -5,13 +5,23 @@ import (
 	"config-storage/internal/storage"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	// Initialize storage
-	store := storage.NewMemoryStorage()
+	// Initialize storage (file-based for persistence)
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data"
+	}
+
+	store, err := storage.NewFileStorage(dataDir)
+	if err != nil {
+		log.Fatal("Failed to initialize storage:", err)
+	}
+	log.Printf("Using file storage at: %s\n", dataDir)
 
 	// Initialize handler
 	handler := handlers.NewHandler(store)

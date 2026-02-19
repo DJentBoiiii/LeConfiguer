@@ -17,6 +17,12 @@ func (h *Handler) CreateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate the configuration (ID is optional for creation)
+	if err := config.ValidateForCreate(); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	if err := h.storage.Create(&config); err != nil {
 		if err == storage.ErrAlreadyExists {
 			respondError(w, http.StatusConflict, "config already exists")

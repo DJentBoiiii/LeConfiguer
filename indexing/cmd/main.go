@@ -42,14 +42,13 @@ func main() {
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
-	}).Methods(http.MethodGet)
+	}).Methods("GET")
 
-	r.HandleFunc("/configs/{id}/versions/{versionId}", h.GetVersion).Methods(http.MethodGet)
-	r.HandleFunc("/configs/{id}/versions", h.ListVersions).Methods(http.MethodGet)
-	r.HandleFunc("/configs/{id}/changes", h.CreateChange).Methods(http.MethodPost)
-	r.HandleFunc("/configs/{id}/rollback", h.Rollback).Methods(http.MethodPost)
-	r.HandleFunc("/diff/{id}", h.Diff).Methods(http.MethodGet)
-
+	r.HandleFunc("/configs/{id}/versions/{versionId}", h.GetVersion).Methods("GET")
+	r.HandleFunc("/configs/{id}/versions", h.ListVersions).Methods("GET")
+	r.HandleFunc("/configs/{id}/changes", h.CreateChange).Methods("POST")
+	r.HandleFunc("/configs/{id}/rollback", h.Rollback).Methods("POST")
+	r.HandleFunc("/diff/{id}", h.Diff).Methods("GET")
 	log.Printf("indexing service listening on %s", cfg.ServerAddr)
 	if err := http.ListenAndServe(cfg.ServerAddr, r); err != nil {
 		log.Fatalf("server error: %v", err)

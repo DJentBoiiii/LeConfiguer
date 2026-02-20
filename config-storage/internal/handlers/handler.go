@@ -5,7 +5,6 @@ import (
 	"config-storage/internal/storage"
 )
 
-// Handler aggregates all HTTP handlers for the config storage service.
 type Handler struct {
 	store   storage.Storage
 	indexer *indexing.Client

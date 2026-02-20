@@ -12,12 +12,17 @@ import (
 )
 
 func main() {
-	baseURL := os.Getenv("CONFIG_STORAGE_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8081"
+	storageURL := os.Getenv("CONFIG_STORAGE_URL")
+	if storageURL == "" {
+		storageURL = "http://localhost:8081"
 	}
 
-	proxy := proxy.NewProxy(baseURL)
+	indexingURL := os.Getenv("INDEXING_URL")
+	if indexingURL == "" {
+		indexingURL = "http://localhost:8082"
+	}
+
+	proxy := proxy.NewProxy(storageURL, indexingURL)
 
 	r := mux.NewRouter()
 
@@ -28,6 +33,10 @@ func main() {
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("PUT")
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("DELETE")
 	r.HandleFunc("/configs", proxyHandler).Methods("GET")
+	r.HandleFunc("/configs/{id}/versions/{versionId}", proxyHandler).Methods("GET")
+	r.HandleFunc("/configs/{id}/versions", proxyHandler).Methods("GET")
+	r.HandleFunc("/configs/{id}/rollback", proxyHandler).Methods("POST")
+	r.HandleFunc("/diff/{id}", proxyHandler).Methods("GET")
 
 	// Start server
 	fmt.Println("API Gateway running on :8080")

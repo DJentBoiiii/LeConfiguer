@@ -2,6 +2,7 @@ package storage
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -27,8 +28,11 @@ func (p *Proxy) Forward(w http.ResponseWriter, r *http.Request) {
 		upstreamURL += "?" + r.URL.RawQuery
 	}
 
+	log.Printf("Proxying %s %s to %s", r.Method, r.URL.Path, upstreamURL)
+
 	req, err := http.NewRequestWithContext(r.Context(), r.Method, upstreamURL, r.Body)
 	if err != nil {
+		log.Printf("Error creating upstream request: %v", err)
 		http.Error(w, "failed to create upstream request", http.StatusBadGateway)
 		return
 	}
@@ -37,10 +41,13 @@ func (p *Proxy) Forward(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := p.Client.Do(req)
 	if err != nil {
+		log.Printf("Error reaching config storage at %s: %v", upstreamURL, err)
 		http.Error(w, "failed to reach config storage", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
+
+	log.Printf("Received response from config storage: status=%d", resp.StatusCode)
 
 	copyHeaders(w.Header(), resp.Header)
 	removeHopByHopHeaders(w.Header())

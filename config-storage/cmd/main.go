@@ -37,8 +37,8 @@ func main() {
 	router.HandleFunc("/configs/{id}", handler.DeleteConfig).Methods("DELETE")
 
 	// Start server
-	log.Println("Config Storage server starting on :8080")
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	log.Println("Config Storage server starting on :8081")
+	if err := http.ListenAndServe(":8081", router); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

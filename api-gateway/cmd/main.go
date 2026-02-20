@@ -28,16 +28,10 @@ func main() {
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("PUT")
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("DELETE")
 	r.HandleFunc("/configs", proxyHandler).Methods("GET")
-	r.HandleFunc("/echo", echoHandler).Methods("POST")
+
 	// Start server
 	fmt.Println("API Gateway running on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
-}
-
-func echoHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message": "Echo from API Gateway"}`))
 }

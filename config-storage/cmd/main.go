@@ -11,17 +11,30 @@ import (
 )
 
 func main() {
-	// Initialize storage (file-based for persistence)
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "./data"
+	// Initialize MinIO storage
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "localhost:9000"
 	}
+	accessKey := os.Getenv("MINIO_ACCESS_KEY")
+	if accessKey == "" {
+		accessKey = "minioadmin"
+	}
+	secretKey := os.Getenv("MINIO_SECRET_KEY")
+	if secretKey == "" {
+		secretKey = "minioadmin"
+	}
+	bucketName := os.Getenv("MINIO_BUCKET")
+	if bucketName == "" {
+		bucketName = "configs"
+	}
+	useSSL := os.Getenv("MINIO_USE_SSL") == "true"
 
-	store, err := storage.NewFileStorage(dataDir)
+	store, err := storage.NewMinIOStorage(endpoint, accessKey, secretKey, bucketName, useSSL)
 	if err != nil {
-		log.Fatal("Failed to initialize storage:", err)
+		log.Fatal("Failed to initialize MinIO storage:", err)
 	}
-	log.Printf("Using file storage at: %s\n", dataDir)
+	log.Printf("Using MinIO storage at: %s (bucket: %s)\n", endpoint, bucketName)
 
 	// Initialize handler
 	handler := handlers.NewHandler(store)

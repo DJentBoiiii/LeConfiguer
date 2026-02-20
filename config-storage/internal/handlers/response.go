@@ -5,16 +5,20 @@ import (
 	"net/http"
 )
 
-// respondJSON writes a JSON response.
-func respondJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if data != nil {
-		json.NewEncoder(w).Encode(data)
-	}
+type errorResponse struct {
+	Error string `json:"error"`
 }
 
-// respondError writes an error response.
-func respondError(w http.ResponseWriter, status int, message string) {
-	respondJSON(w, status, map[string]string{"error": message})
+func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func respondError(w http.ResponseWriter, status int, err error) {
+	if err == nil {
+		respondJSON(w, status, errorResponse{Error: http.StatusText(status)})
+		return
+	}
+	respondJSON(w, status, errorResponse{Error: err.Error()})
 }

@@ -1,47 +1,63 @@
 package storage
 
 import (
-	"config-storage/internal/models"
-	"encoding/json"
-	"io"
+	"path"
 	"strings"
+
+	"config-storage/internal/models"
 
 	"github.com/minio/minio-go/v7"
 )
 
-// List returns all configurations from MinIO bucket.
-func (m *MinIOStorage) List() ([]*models.Config, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+// List returns metadata for all stored configurations.
+// File contents are not loaded to keep the response lightweight.
+func (s *MinIOStorage) List() ([]*models.Config, error) {
+	var configs []*models.Config
 
-	configs := make([]*models.Config, 0)
+	objectCh := s.client.ListObjects(s.ctx, s.bucketName, minio.ListObjectsOptions{
+		Recursive: true,
+	})
 
-	for object := range m.client.ListObjects(m.ctx, m.bucketName, minio.ListObjectsOptions{}) {
+	for object := range objectCh {
 		if object.Err != nil {
-			continue
+			return nil, object.Err
 		}
 
-		if !strings.HasSuffix(object.Key, ".json") {
-			continue
-		}
-
-		objectReader, err := m.client.GetObject(m.ctx, m.bucketName, object.Key, minio.GetObjectOptions{})
+		info, err := s.client.StatObject(s.ctx, s.bucketName, object.Key, minio.StatObjectOptions{})
 		if err != nil {
-			continue
+			return nil, err
 		}
 
-		data, err := io.ReadAll(objectReader)
-		objectReader.Close()
-		if err != nil {
-			continue
+		parts := strings.Split(object.Key, "/")
+		environment := ""
+		configType := ""
+		if len(parts) >= 2 {
+			environment = parts[0]
+			configType = parts[1]
 		}
 
-		var config models.Config
-		if err := json.Unmarshal(data, &config); err != nil {
-			continue
+		meta := info.UserMetadata
+		id := meta["id"]
+		if id == "" {
+			id = path.Base(object.Key)
+		}
+		name := meta["name"]
+		if name == "" {
+			name = id
+		}
+		if metaType := meta["type"]; metaType != "" {
+			configType = metaType
+		}
+		if metaEnv := meta["environment"]; metaEnv != "" {
+			environment = metaEnv
 		}
 
-		configs = append(configs, &config)
+		configs = append(configs, &models.Config{
+			ID:          id,
+			Name:        name,
+			Type:        configType,
+			Environment: environment,
+		})
 	}
 
 	return configs, nil

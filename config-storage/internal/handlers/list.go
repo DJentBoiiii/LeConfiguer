@@ -4,11 +4,11 @@ import (
 	"net/http"
 )
 
-// ListConfigs handles GET requests to retrieve all configurations.
+// ListConfigs handles GET /configs
 func (h *Handler) ListConfigs(w http.ResponseWriter, r *http.Request) {
-	configs, err := h.storage.List()
+	configs, err := h.store.List()
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusInternalServerError, err)
 		return
 	}
 

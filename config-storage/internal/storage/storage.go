@@ -3,6 +3,7 @@ package storage
 import (
 	"config-storage/internal/models"
 	"errors"
+	"io"
 )
 
 var (
@@ -17,4 +18,5 @@ type Storage interface {
 	Update(id string, config *models.Config) error
 	Delete(id string) error
 	List() ([]*models.Config, error)
+	Download(id string) (*models.Config, io.ReadCloser, error)
 }

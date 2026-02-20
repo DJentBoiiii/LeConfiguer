@@ -5,15 +5,14 @@ import (
 	"config-storage/internal/storage"
 	"io"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
-// UpdateConfig handles PUT /configs/{id}
-// It expects multipart/form-data with fields: name, type, environment, file.
 func (h *Handler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id, err := getConfigID(r)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err)
+		return
+	}
 
 	if err := r.ParseMultipartForm(32 << 20); err != nil { // 32MB
 		respondError(w, http.StatusBadRequest, err)
@@ -39,7 +38,7 @@ func (h *Handler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
 
 	config := &models.Config{
 		ID:          id,
-		Name:        name + "." + configType,
+		Name:        name,
 		Type:        configType,
 		Environment: environment,
 		JSONContent: content,
@@ -59,24 +58,11 @@ func (h *Handler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Do not return file content in the response.
-	config.JSONContent = nil
-	respondJSON(w, http.StatusOK, config)
-}
-
-// DeleteConfig handles DELETE /configs/{id}
-func (h *Handler) DeleteConfig(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	if err := h.store.Delete(id); err != nil {
-		if err == storage.ErrNotFound {
-			respondError(w, http.StatusNotFound, err)
-			return
-		}
-		respondError(w, http.StatusInternalServerError, err)
+	if err := h.sendIndexChange(r.Context(), config.ID, config.Name, config.Type, config.Environment, "update", string(content)); err != nil {
+		respondError(w, http.StatusBadGateway, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	config.JSONContent = nil
+	respondJSON(w, http.StatusOK, config)
 }

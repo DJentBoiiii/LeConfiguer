@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"api-gateway/internal/storage"
+	proxy "api-gateway/internal/proxy"
 
 	"github.com/gorilla/mux"
 )
@@ -17,7 +17,7 @@ func main() {
 		baseURL = "http://localhost:8081"
 	}
 
-	proxy := storage.NewProxy(baseURL)
+	proxy := proxy.NewProxy(baseURL)
 
 	r := mux.NewRouter()
 

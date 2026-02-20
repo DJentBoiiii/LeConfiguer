@@ -1,4 +1,4 @@
-package storage
+package proxy
 
 import (
 	"io"
@@ -21,7 +21,6 @@ func NewProxy(baseURL string) *Proxy {
 	}
 }
 
-// Forward reroutes the incoming request to Config Storage and streams the response back.
 func (p *Proxy) Forward(w http.ResponseWriter, r *http.Request) {
 	upstreamURL := p.BaseURL + r.URL.Path
 	if r.URL.RawQuery != "" {

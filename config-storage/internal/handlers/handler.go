@@ -1,13 +1,16 @@
 package handlers
 
-import "config-storage/internal/storage"
+import (
+	"config-storage/internal/indexing"
+	"config-storage/internal/storage"
+)
 
 // Handler aggregates all HTTP handlers for the config storage service.
 type Handler struct {
-	store storage.Storage
+	store   storage.Storage
+	indexer *indexing.Client
 }
 
-// NewHandler creates a new Handler with the given storage backend.
-func NewHandler(store storage.Storage) *Handler {
-	return &Handler{store: store}
+func NewHandler(store storage.Storage, indexer *indexing.Client) *Handler {
+	return &Handler{store: store, indexer: indexer}
 }

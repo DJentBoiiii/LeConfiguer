@@ -7,11 +7,8 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
-// UploadConfig handles POST /configs
-// It expects multipart/form-data with fields: id (optional), name, type, environment, file.
 func (h *Handler) UploadConfig(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(32 << 20); err != nil { // 32MB
 		respondError(w, http.StatusBadRequest, err)
@@ -42,7 +39,7 @@ func (h *Handler) UploadConfig(w http.ResponseWriter, r *http.Request) {
 
 	config := &models.Config{
 		ID:          id,
-		Name:        name,
+		Name:        name + "." + configType,
 		Type:        configType,
 		Environment: environment,
 		JSONContent: content,
@@ -62,25 +59,12 @@ func (h *Handler) UploadConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Do not return file content in the response.
-	config.JSONContent = nil
-	respondJSON(w, http.StatusCreated, config)
-}
-
-// GetConfig handles GET /configs/{id}
-func (h *Handler) GetConfig(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	config, err := h.store.Get(id)
-	if err != nil {
-		if err == storage.ErrNotFound {
-			respondError(w, http.StatusNotFound, err)
-			return
-		}
-		respondError(w, http.StatusInternalServerError, err)
+	if err := h.sendIndexChange(r.Context(), config.ID, config.Name, config.Type, config.Environment, "create", string(content)); err != nil {
+		respondError(w, http.StatusBadGateway, err)
 		return
 	}
 
-	respondJSON(w, http.StatusOK, config)
+	// Do not return file content in the response.
+	config.JSONContent = nil
+	respondJSON(w, http.StatusCreated, config)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"config-storage/internal/handlers"
+	"config-storage/internal/indexing"
 	"config-storage/internal/storage"
 	"log"
 	"net/http"
@@ -62,8 +63,14 @@ func main() {
 		log.Fatalf("unsupported STORAGE_TYPE: %s", storageType)
 	}
 
+	indexingURL := os.Getenv("INDEXING_URL")
+	if indexingURL == "" {
+		indexingURL = "http://localhost:8082"
+	}
+	indexer := indexing.NewClient(indexingURL)
+
 	// Initialize handler
-	handler := handlers.NewHandler(store)
+	handler := handlers.NewHandler(store, indexer)
 
 	// Set up router
 	router := mux.NewRouter()

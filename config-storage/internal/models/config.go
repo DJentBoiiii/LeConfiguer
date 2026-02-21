@@ -11,20 +11,6 @@ type Config struct {
 	JSONContent interface{} `json:"json_content"`
 }
 
-// ValidateForCreate validates a config for creation.
-func (c *Config) ValidateForCreate() error {
-	if c.Name == "" {
-		return errors.New("name is required")
-	}
-	if c.Type == "" {
-		return errors.New("type is required")
-	}
-	if c.Environment == "" {
-		return errors.New("environment is required")
-	}
-	return nil
-}
-
 // Validate validates a config for update.
 func (c *Config) Validate() error {
 	if c.Name == "" {

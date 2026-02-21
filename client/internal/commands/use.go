@@ -10,7 +10,7 @@ import (
 
 func NewUseCommand(apiURL string) *cobra.Command {
 	var id, outputFile string
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "use",
 		Short: "Download file",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -29,9 +29,8 @@ func NewUseCommand(apiURL string) *cobra.Command {
 			}
 			return nil
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
-			cmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output file")
-		},
 	}
+	cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
+	cmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output file")
+	return cmd
 }

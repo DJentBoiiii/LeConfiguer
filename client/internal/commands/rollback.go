@@ -9,7 +9,7 @@ import (
 
 func NewRollbackCommand(apiURL string) *cobra.Command {
 	var id string
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "rollback",
 		Short: "Rollback config to previous version",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -22,8 +22,7 @@ func NewRollbackCommand(apiURL string) *cobra.Command {
 			}
 			return err
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
-		},
 	}
+	cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
+	return cmd
 }

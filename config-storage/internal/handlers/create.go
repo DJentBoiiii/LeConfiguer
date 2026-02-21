@@ -45,7 +45,7 @@ func (h *Handler) UploadConfig(w http.ResponseWriter, r *http.Request) {
 		JSONContent: content,
 	}
 
-	if err := config.ValidateForCreate(); err != nil {
+	if err := config.Validate(); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}

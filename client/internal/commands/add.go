@@ -8,7 +8,7 @@ import (
 
 func NewAddCommand(apiURL string) *cobra.Command {
 	var id, name, configType, environment string
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "add [file-path]",
 		Short: "Upload config to MinIO",
 		Args:  cobra.ExactArgs(1),
@@ -24,11 +24,10 @@ func NewAddCommand(apiURL string) *cobra.Command {
 			}
 			return err
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
-			cmd.Flags().StringVarP(&name, "name", "n", "", "Config name")
-			cmd.Flags().StringVarP(&configType, "type", "t", "", "Config type")
-			cmd.Flags().StringVarP(&environment, "environment", "e", "", "Environment")
-		},
 	}
+	cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
+	cmd.Flags().StringVarP(&name, "name", "n", "", "Config name")
+	cmd.Flags().StringVarP(&configType, "type", "t", "", "Config type")
+	cmd.Flags().StringVarP(&environment, "environment", "e", "", "Environment")
+	return cmd
 }

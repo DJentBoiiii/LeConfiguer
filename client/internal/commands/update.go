@@ -9,7 +9,7 @@ import (
 
 func NewUpdateCommand(apiURL string) *cobra.Command {
 	var id string
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "update [file-path]",
 		Short: "Update config",
 		Args:  cobra.ExactArgs(1),
@@ -30,8 +30,7 @@ func NewUpdateCommand(apiURL string) *cobra.Command {
 			}
 			return err
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
-		},
 	}
+	cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
+	return cmd
 }

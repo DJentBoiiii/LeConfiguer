@@ -36,5 +36,12 @@ func (h *Handler) DeleteConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.indexer != nil {
+		if err := h.indexer.DeleteConfig(r.Context(), id); err != nil {
+			respondError(w, http.StatusBadGateway, err)
+			return
+		}
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }

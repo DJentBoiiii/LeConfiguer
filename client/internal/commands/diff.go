@@ -12,7 +12,7 @@ import (
 
 func NewDiffCommand(apiURL string) *cobra.Command {
 	var id string
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "diff [file-path]",
 		Short: "Diff with previous version if exists",
 		Args:  cobra.ExactArgs(1),
@@ -40,8 +40,7 @@ func NewDiffCommand(apiURL string) *cobra.Command {
 			fmt.Print(text)
 			return nil
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
-		},
 	}
+	cmd.Flags().StringVarP(&id, "id", "i", "", "Config ID")
+	return cmd
 }

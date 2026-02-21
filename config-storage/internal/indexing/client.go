@@ -63,3 +63,21 @@ func (c *Client) SendChange(ctx context.Context, configID string, req ChangeRequ
 
 	return nil
 }
+
+// DeleteConfig deletes all records for a config from the indexing service.
+func (c *Client) DeleteConfig(ctx context.Context, configID string) error {
+	url := fmt.Sprintf("%s/configs/%s", c.baseURL, configID)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return fmt.Errorf("indexing service returned status %d", resp.StatusCode)
+	}
+	return nil
+}

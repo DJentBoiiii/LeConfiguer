@@ -48,6 +48,7 @@ func main() {
 	r.HandleFunc("/configs/{id}/versions", h.ListVersions).Methods("GET")
 	r.HandleFunc("/configs/{id}/changes", h.CreateChange).Methods("POST")
 	r.HandleFunc("/configs/{id}/rollback", h.Rollback).Methods("POST")
+	r.HandleFunc("/configs/{id}", h.DeleteConfig).Methods("DELETE")
 	r.HandleFunc("/diff/{id}", h.Diff).Methods("GET")
 	log.Printf("indexing service listening on %s", cfg.ServerAddr)
 	if err := http.ListenAndServe(cfg.ServerAddr, r); err != nil {

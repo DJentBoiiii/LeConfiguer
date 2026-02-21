@@ -98,7 +98,7 @@ func (h *Handler) GetVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionID, err := parseUint(vars["versionId"])
+	versionID, err := strconv.ParseUint(vars["versionId"], 10, 64)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
@@ -117,10 +117,21 @@ func (h *Handler) GetVersion(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, change)
 }
 
-func parseUint(value string) (uint, error) {
-	parsed, err := strconv.ParseUint(value, 10, 64)
-	if err != nil {
-		return 0, err
+func (h *Handler) DeleteConfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	configID := vars["id"]
+	if configID == "" {
+		respondError(w, http.StatusBadRequest, errors.New("config id is required"))
+		return
 	}
-	return uint(parsed), nil
+
+	if err := h.db.Where("config_id = ?", configID).Delete(&models.ConfigChange{}).Error; err != nil {
+		respondError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]string{
+		"message":   "config deleted",
+		"config_id": configID,
+	})
 }

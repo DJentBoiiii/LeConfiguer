@@ -8,6 +8,8 @@
 *.so
 *.dylib
 
+# Secrets file, containing sensitive information like database credentials, API keys, etc.
+secrets.yaml
 # Test binary, built with `go test -c`
 *.test
 

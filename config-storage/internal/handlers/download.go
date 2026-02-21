@@ -9,8 +9,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// DownloadConfig handles GET /configs/{id}/download
-// It downloads the configuration file with filename format: name.type
 func (h *Handler) DownloadConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -31,11 +29,8 @@ func (h *Handler) DownloadConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
 	w.Header().Set("Content-Type", "application/octet-stream")
 
-	// Stream the file content to the response
 	_, err = io.Copy(w, reader)
 	if err != nil {
-		// If headers are already sent, we can't return an error
-		// Log the error in production systems
 		return
 	}
 }

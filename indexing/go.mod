@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/pmezard/go-difflib v1.0.0
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.12
 )

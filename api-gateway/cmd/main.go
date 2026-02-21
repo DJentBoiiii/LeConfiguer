@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	storageURL := os.Getenv("CONFIG_STORAGE_URL")
+	storageURL := os.Getenv("STORAGE_URL")
 	if storageURL == "" {
 		storageURL = "http://localhost:8081"
 	}
@@ -37,6 +37,12 @@ func main() {
 	r.HandleFunc("/configs/{id}/versions", proxyHandler).Methods("GET")
 	r.HandleFunc("/configs/{id}/rollback", proxyHandler).Methods("POST")
 	r.HandleFunc("/diff/{id}", proxyHandler).Methods("GET")
+
+	// Health check endpoint
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
 	// Start server
 	fmt.Println("API Gateway running on :8080")

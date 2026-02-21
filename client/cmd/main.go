@@ -29,6 +29,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewDiffCommand(apiURL))
 	rootCmd.AddCommand(commands.NewUseCommand(apiURL))
 	rootCmd.AddCommand(commands.NewRollbackCommand(apiURL))
+	rootCmd.AddCommand(commands.NewVersionsCommand(apiURL))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

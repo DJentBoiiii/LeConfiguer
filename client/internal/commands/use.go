@@ -17,7 +17,7 @@ func NewUseCommand(apiURL string) *cobra.Command {
 			if err := requireID(id); err != nil {
 				return err
 			}
-			data, err := client.NewClient(apiURL).Get(fmt.Sprintf("/configs/%s", id))
+			data, err := client.NewClient(apiURL).Get(fmt.Sprintf("/configs/download/%s", id))
 			if err != nil {
 				return err
 			}

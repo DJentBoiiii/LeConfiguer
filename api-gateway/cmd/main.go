@@ -33,6 +33,7 @@ func main() {
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("PUT")
 	r.HandleFunc("/configs/{id}", proxyHandler).Methods("DELETE")
 	r.HandleFunc("/configs", proxyHandler).Methods("GET")
+	r.HandleFunc("/configs/download/{id}", proxyHandler).Methods("GET")
 	r.HandleFunc("/configs/{id}/versions/{versionId}", proxyHandler).Methods("GET")
 	r.HandleFunc("/configs/{id}/versions", proxyHandler).Methods("GET")
 	r.HandleFunc("/configs/{id}/rollback", proxyHandler).Methods("POST")

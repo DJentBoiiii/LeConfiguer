@@ -20,7 +20,7 @@ pipeline {
     stage('Prepare') {
       agent {
         docker {
-          image 'golang:1.21'
+          image 'golang:1.25'
           reuseNode true
         }
       }
@@ -39,8 +39,8 @@ pipeline {
     stage('Test') {
       agent {
         docker {
-          // golang:1.21 (debian-based) includes gcc for CGO required by go-sqlite3
-          image 'golang:1.21'
+          // golang:1.25 (debian-based) includes gcc for CGO required by go-sqlite3
+          image 'golang:1.25'
           reuseNode true
         }
       }
@@ -57,7 +57,7 @@ pipeline {
     stage('Static code analysis') {
       agent {
         docker {
-          image 'golang:1.21'
+          image 'golang:1.25'
           reuseNode true
         }
       }

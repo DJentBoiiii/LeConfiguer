@@ -14,6 +14,9 @@ pipeline {
     EKS_CLUSTER_NAME      = 'leconfiguer-eks'
     K8S_NAMESPACE         = 'default'
     IMAGE_TAG             = "${env.BUILD_NUMBER}"
+    // Go build/module cache dirs writable by the Jenkins uid (1000) inside Docker
+    GOCACHE               = '/tmp/go-cache'
+    GOPATH                = '/tmp/go'
   }
 
   stages {

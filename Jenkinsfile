@@ -84,14 +84,6 @@ pipeline {
     }
 
     stage('Build Docker images') {
-      agent {
-        docker {
-          image 'docker:27-cli'
-          // Mount the host Docker socket so we can build images
-          args  '-v /var/run/docker.sock:/var/run/docker.sock'
-          reuseNode true
-        }
-      }
       steps {
         sh '''
           set -eux
@@ -106,13 +98,6 @@ pipeline {
     }
 
     stage('Push images to registry') {
-      agent {
-        docker {
-          image 'docker:27-cli'
-          args  '-v /var/run/docker.sock:/var/run/docker.sock'
-          reuseNode true
-        }
-      }
       steps {
         withCredentials([usernamePassword(
           credentialsId: env.DOCKER_CREDENTIALS_ID,
@@ -139,13 +124,6 @@ pipeline {
         anyOf {
           branch 'main'
           branch 'master'
-        }
-      }
-      agent {
-        docker {
-          // alpine/k8s bundles kubectl + aws-cli + helm in a single image
-          image 'alpine/k8s:1.29.2'
-          reuseNode true
         }
       }
       steps {

@@ -1,4 +1,5 @@
 pipeline {
+  // Node is allocated by the first stage; all Docker agents reuse it via reuseNode true
   agent any
 
   options {
@@ -6,25 +7,28 @@ pipeline {
   }
 
   environment {
-    REGISTRY = 'djentboiii'
+    REGISTRY              = 'djentboiii'
     DOCKER_CREDENTIALS_ID = 'docker-registry-credentials'
-    AWS_CREDENTIALS_ID = 'aws-jenkins-credentials'
-    AWS_REGION = 'eu-central-1'
-    EKS_CLUSTER_NAME = 'leconfiguer-eks'
-    K8S_NAMESPACE = 'default'
-    IMAGE_TAG = "${env.BUILD_NUMBER}"
+    AWS_CREDENTIALS_ID    = 'aws-jenkins-credentials'
+    AWS_REGION            = 'eu-central-1'
+    EKS_CLUSTER_NAME      = 'leconfiguer-eks'
+    K8S_NAMESPACE         = 'default'
+    IMAGE_TAG             = "${env.BUILD_NUMBER}"
   }
 
   stages {
     stage('Prepare') {
+      agent {
+        docker {
+          image 'golang:1.21'
+          reuseNode true
+        }
+      }
       steps {
         checkout scm
         sh '''
           set -eux
           go version
-          docker --version
-          kubectl version --client
-
           for svc in api-gateway config-storage indexing; do
             (cd "$svc" && go mod download)
           done
@@ -33,6 +37,13 @@ pipeline {
     }
 
     stage('Test') {
+      agent {
+        docker {
+          // golang:1.21 (debian-based) includes gcc for CGO required by go-sqlite3
+          image 'golang:1.21'
+          reuseNode true
+        }
+      }
       steps {
         sh '''
           set -eux
@@ -44,6 +55,12 @@ pipeline {
     }
 
     stage('Static code analysis') {
+      agent {
+        docker {
+          image 'golang:1.21'
+          reuseNode true
+        }
+      }
       steps {
         sh '''
           set -eux
@@ -64,6 +81,14 @@ pipeline {
     }
 
     stage('Build Docker images') {
+      agent {
+        docker {
+          image 'docker:27-cli'
+          // Mount the host Docker socket so we can build images
+          args  '-v /var/run/docker.sock:/var/run/docker.sock'
+          reuseNode true
+        }
+      }
       steps {
         sh '''
           set -eux
@@ -78,8 +103,19 @@ pipeline {
     }
 
     stage('Push images to registry') {
+      agent {
+        docker {
+          image 'docker:27-cli'
+          args  '-v /var/run/docker.sock:/var/run/docker.sock'
+          reuseNode true
+        }
+      }
       steps {
-        withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+        withCredentials([usernamePassword(
+          credentialsId: env.DOCKER_CREDENTIALS_ID,
+          usernameVariable: 'REG_USER',
+          passwordVariable: 'REG_PASS'
+        )]) {
           sh '''
             set -eux
             echo "$REG_PASS" | docker login -u "$REG_USER" --password-stdin
@@ -102,6 +138,13 @@ pipeline {
           branch 'master'
         }
       }
+      agent {
+        docker {
+          // alpine/k8s bundles kubectl + aws-cli + helm in a single image
+          image 'alpine/k8s:1.29.2'
+          reuseNode true
+        }
+      }
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: env.AWS_CREDENTIALS_ID]]) {
           sh '''
@@ -118,13 +161,13 @@ pipeline {
             kubectl -n "$K8S_NAMESPACE" apply -f kubernetes/statefulsets.yaml
             kubectl -n "$K8S_NAMESPACE" apply -f kubernetes/deployment.yaml
 
-            kubectl -n "$K8S_NAMESPACE" set image deployment/api-gateway api-gateway="$REGISTRY/api-gateway:$IMAGE_TAG"
-            kubectl -n "$K8S_NAMESPACE" set image deployment/config-storage config-storage="$REGISTRY/config-storage:$IMAGE_TAG"
-            kubectl -n "$K8S_NAMESPACE" set image deployment/indexing indexing="$REGISTRY/indexing:$IMAGE_TAG"
+            kubectl -n "$K8S_NAMESPACE" set image deployment/api-gateway     api-gateway="$REGISTRY/api-gateway:$IMAGE_TAG"
+            kubectl -n "$K8S_NAMESPACE" set image deployment/config-storage   config-storage="$REGISTRY/config-storage:$IMAGE_TAG"
+            kubectl -n "$K8S_NAMESPACE" set image deployment/indexing         indexing="$REGISTRY/indexing:$IMAGE_TAG"
 
-            kubectl -n "$K8S_NAMESPACE" rollout status deployment/api-gateway --timeout=180s
-            kubectl -n "$K8S_NAMESPACE" rollout status deployment/config-storage --timeout=180s
-            kubectl -n "$K8S_NAMESPACE" rollout status deployment/indexing --timeout=180s
+            kubectl -n "$K8S_NAMESPACE" rollout status deployment/api-gateway     --timeout=180s
+            kubectl -n "$K8S_NAMESPACE" rollout status deployment/config-storage  --timeout=180s
+            kubectl -n "$K8S_NAMESPACE" rollout status deployment/indexing        --timeout=180s
           '''
         }
       }

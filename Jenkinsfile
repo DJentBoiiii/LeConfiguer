@@ -67,6 +67,9 @@ pipeline {
       steps {
         sh '''
           set -eux
+          export PATH="$PATH:$GOPATH/bin"
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
           for svc in api-gateway config-storage indexing; do
             (
               cd "$svc"
@@ -77,6 +80,7 @@ pipeline {
                 exit 1
               fi
               go vet ./...
+              govulncheck ./...
             )
           done
         '''
@@ -92,6 +96,25 @@ pipeline {
               -t "$REGISTRY/$svc:$IMAGE_TAG" \
               -t "$REGISTRY/$svc:latest" \
               "$svc"
+          done
+        '''
+      }
+    }
+
+    stage('Scan Docker images for vulnerabilities') {
+      steps {
+        sh '''
+          set -eux
+
+          for svc in api-gateway config-storage indexing; do
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:0.57.1 image \
+              --no-progress \
+              --severity HIGH,CRITICAL \
+              --ignore-unfixed \
+              --exit-code 1 \
+              "$REGISTRY/$svc:$IMAGE_TAG"
           done
         '''
       }
